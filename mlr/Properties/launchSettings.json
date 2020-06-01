@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "mlr": {
+      "commandName": "Project",
+      "commandLineArgs": "test.txt",
+      "workingDirectory": "C:\\Users\\mpaulus\\source\\repos\\mlr\\mlr"
+    }
+  }
+}
