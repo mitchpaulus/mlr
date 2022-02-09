@@ -69,8 +69,9 @@ namespace mlr
         ///                                 t-stats
         ///                                 F-statistic
         ///                                 adjusted R^2</param>
+        /// <param name="addConstant">Add column of 1's to x matrix to get a constant coefficient.</param>
         /// <returns>RegressionOutputs class</returns>
-        public static RegressionOutputs MultipleLinearRegression(double[] y, double[,] x, bool advancedStats)
+        public static RegressionOutputs MultipleLinearRegression(double[] y, double[,] x, bool advancedStats, bool addConstant = true)
         {
 
             RegressionOutputs toReturn = new RegressionOutputs();
@@ -82,17 +83,25 @@ namespace mlr
                 throw new Exception("Matrices must be the same size for regression");
             }
 
-
-            //Add a column of 1's to the X matrix to calculate a constant in the regression
-            double[,] xFull = new double[x.GetLength(0), x.GetLength(1) + 1];
-            for (int i = 0; i < x.GetLength(0); i++)
+            double[,] xFull;
+            if (addConstant)
             {
-                xFull[i, 0] = 1;
-                for (int j = 0; j < x.GetLength(1); j++)
+                //Add a column of 1's to the X matrix to calculate a constant in the regression
+                xFull = new double[x.GetLength(0), x.GetLength(1) + 1];
+                for (int i = 0; i < x.GetLength(0); i++)
                 {
-                    xFull[i, j + 1] = x[i, j];
+                    xFull[i, 0] = 1;
+                    for (int j = 0; j < x.GetLength(1); j++)
+                    {
+                        xFull[i, j + 1] = x[i, j];
+                    }
                 }
             }
+            else
+            {
+                xFull = x;
+            }
+
             //Have to make y a two dimensional array to pass to my matrix methods.
             double[,] yAdjusted = new double[y.Length, 1];
             for (int i = 0; i < y.Length; i++)
@@ -101,10 +110,8 @@ namespace mlr
             }
 
             double yAve = y.Average();
-            int n = y.Count();
+            int n = y.Length;
             int p = xFull.GetLength(1);
-
-
 
             //Calculate X'X
             var xTrans = MatrixMethods.MatTranspose(xFull);
@@ -135,10 +142,6 @@ namespace mlr
             // Calculate B'X'Y
             double[,] betaTransXtransY = MatrixMethods.MatMultiply(MatrixMethods.MatTranspose(coeffs), xTransY);
 
-
-
-
-
             double sse = yTransY[0, 0] - betaTransXtransY[0, 0];    //Sum of squared errors (sum of squared residuals)
             //Check if sse is less than zero.  Ran into round off problem when passed constant data.
             if (sse < 0)
@@ -146,13 +149,26 @@ namespace mlr
                 sse = 0;
             }
 
+            // "Sum of squares regression" or "Sum of squares model" or simply (y - y_ave)^2
+            // If no constant, then the formula changes, it is just the sum of squared y-values.
+            // See https://stats.stackexchange.com/questions/26176
+            double ssm = 0;
 
-            double[] ssmArray = new double[n];
-            for (int i = 0; i < ssmArray.Count(); i++)
+            foreach (var value in y)
             {
-                ssmArray[i] = (y[i] - yAve) * (y[i] - yAve);
+                if (addConstant)
+                {
+                    double diff = value - yAve;
+                    ssm += diff * diff;
+                }
+                else
+                {
+                    ssm += value * value;
+                }
             }
-            double ssm = ssmArray.Sum();            //"Sum of squares regression" or "Sum of squares model" or simply (y - y_ave)^2
+
+
+            toReturn.n = n;
 
             double mse = sse / (n - p);   //mean squared error
 
@@ -171,7 +187,8 @@ namespace mlr
             toReturn.CV = toReturn.StandardError / yAve;
             toReturn.Tstats = new double[p];
             toReturn.Rsquared = 1 - (sse / ssm);
-
+            toReturn.SSE = sse;
+            toReturn.SST = ssm;
 
             //Advanced Statistics
             //============================================================================================
@@ -188,6 +205,8 @@ namespace mlr
                 //-----------------------------------
                 double[] predictions = new double[n];
                 double[] residuals = new double[n];
+
+                double ssr = 0;
                 for (int i = 0; i < n; i++)
                 {
                     predictions[i] = 0;
@@ -196,9 +215,20 @@ namespace mlr
                         predictions[i] = predictions[i] + coeffs[j, 0] * xFull[i, j];
                     }
                     residuals[i] = y[i] - predictions[i];
+
+                    // The SSR changes if there is no constant in the regression.
+                    // See https://stats.stackexchange.com/questions/26176
+                    if (addConstant)
+                    {
+                        ssr += (predictions[i] - yAve) * (predictions[i] - yAve);
+                    }
+                    else
+                    {
+                        ssr += predictions[i] * predictions[i];
+                    }
                 }
 
-
+                toReturn.SSR = ssr;
 
                 //Calculate standardized residuals
                 //--------------------------------
@@ -352,7 +382,15 @@ namespace mlr
         /// Two dimensional array of x data used in the regression.
         /// </summary>
         public double[,] Xdata { get; set; }
+        
+        public int n { get; set; }
 
+        public double SSE { get; set; }
+        public double SST { get; set; }
+
+        public double SSR { get; set; }
+
+        public double YAvg => Ydata.Average();
 
         public RegressionOutputs CloneBasicStatistics()
         {
