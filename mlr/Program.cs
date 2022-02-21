@@ -35,18 +35,23 @@ namespace mlr
                     dataFilePath = a;
                 }
             }
-            
+
             string input;
             if (dataFilePath is null or "-")
             {
-                input = Console.In.ReadToEnd();
+                try { input = Console.In.ReadToEnd(); }
+                catch
+                {
+                    Console.Error.Write("Ran into exception reading from Standard Input.\n");
+                    return 1;
+                }
             }
             else if (args.Length > 0)
             {
                 FileInfo fileInfo = new FileInfo(dataFilePath);
                 if (!fileInfo.Exists)
                 {
-                    Console.Write($"Could not find the file '{fileInfo.FullName}'");
+                    Console.Error.Write($"Could not find the file '{fileInfo.FullName}'");
                     return 1;
                 }
                 
@@ -54,13 +59,13 @@ namespace mlr
             }
             else
             {
-                Console.Out.WriteLine("No input.");
+                Console.Error.Write("No input.\n");
                 return 1;
             }
 
             if (input.Length == 0)
             {
-                Console.Out.Write($"No input read from '{dataFilePath}'.\n");
+                Console.Error.Write($"No input read from '{dataFilePath}'.\n");
                 return 1;
             }
 
@@ -79,7 +84,7 @@ namespace mlr
 
             if (!data.Any())
             {
-                Console.Out.WriteLine($"None of the original {splitLines.Count} lines contained records of completely clean data.");
+                Console.Error.Write($"None of the original {splitLines.Count} lines contained records of completely clean data.\n");
                 return 1;
             }
 
