@@ -25,11 +25,17 @@ namespace mlr
                 if (a is "-h" or "--help")
                 {
                     DisplayHelp();
-                    return 1;
+                    return 0;
                 }
-                else if (a is "-n" or "--no-const") addConstant = false;
+
+                if (a is "-n" or "--no-const") addConstant = false;
                 else if (a is "-s" or "--stats") printStats = true;
                 else if (a is "-p" or "--print") printResults = true;
+                else if (a is "--version")
+                {
+                    Console.Write(Version + "\n");
+                    return 0;
+                }
                 else
                 {
                     dataFilePath = a;
@@ -48,13 +54,13 @@ namespace mlr
             }
             else if (args.Length > 0)
             {
-                FileInfo fileInfo = new FileInfo(dataFilePath);
+                FileInfo fileInfo = new(dataFilePath);
                 if (!fileInfo.Exists)
                 {
                     Console.Error.Write($"Could not find the file '{fileInfo.FullName}'");
                     return 1;
                 }
-                
+
                 input = File.ReadAllText(dataFilePath);
             }
             else
@@ -136,13 +142,16 @@ namespace mlr
             Console.Write("OPTIONS:\n");
             Console.Write(" -h, --help      Show help and exit\n");
             Console.Write(" -n, --no-const  Don't add constant for regression coefficients\n");
+            Console.Write(" -s, --stats     Print extra model statistics\n");
+            Console.Write("     --version   Display version and exit\n");
             Console.Write("\n");
             Console.Write("The 'dataFile' is expected to be a whitespace delimited data file,\n");
             Console.Write("with the first column being Y, followed by X1, X2, ... columns.\n");
         }
 
-        public static bool IsValidLine(string[] strings, int numColumns) => strings.Any() && strings.Length == numColumns && strings.All(s => double.TryParse(s, out double _)); 
+        private static string Version => "0.1.0";
 
+        public static bool IsValidLine(string[] strings, int numColumns) => strings.Any() && strings.Length == numColumns && strings.All(s => double.TryParse(s, out double _));
     }
 
 
