@@ -2,8 +2,8 @@
   "profiles": {
     "mlr": {
       "commandName": "Project",
-      "commandLineArgs": "-s chiller_3_gordon.tsv",
-      "workingDirectory": "C:\\Users\\mpaulus\\source\\repos\\has-iah-modeling\\chillers"
+      "commandLineArgs": "--stats --no-const ct4_power.tsv",
+      "workingDirectory": "C:\\Users\\mpaulus\\source\\repos\\has-iah-modeling\\Cooling Towers\\CT4"
     }
   }
 }
