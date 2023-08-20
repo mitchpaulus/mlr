@@ -1,0 +1,29 @@
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 7.x
+
+      - run: dotnet build
+
+      - name: Publish
+        run: |
+          cd mlr
+          ./build.sh "$(git tag --points-at)"
+
+      - name: GH Release
+        uses: softprops/action-gh-release
+        with:
+          files: |
+            mlr/publish/*
