@@ -130,9 +130,24 @@ namespace mlr
             }
 
             List<string> lines = input.Split( new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None ).ToList();
+            if (lines.Count < 2)
+            {
+                Console.Error.Write($"Only found a single line.\n");
+                return 1;
+            }
 
             // Split on whitespace by default (null), otherwise whatever was put in by user.
             List<string[]> splitLines;
+
+            if (dataFilePath != null)
+            {
+                if (dataFilePath.ToLower().EndsWith(".csv")) delimiter = ",";
+                else if (dataFilePath.ToLower().EndsWith(".tsv")) delimiter = "\t";
+            }
+            
+            // Check for presence of tab. If tab found, assume tab delimited.
+            if (lines[0].Contains('\t')) delimiter = "\t";
+            
             if (delimiter is null) splitLines = lines.Skip(skip).Select(line => line.Split()).ToList();
             else                   splitLines = lines.Skip(skip).Select(line => line.Split(delimiter)).ToList();
 

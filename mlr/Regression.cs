@@ -194,7 +194,7 @@ namespace mlr
 
             //Advanced Statistics
             //============================================================================================
-            if (advancedStats == true)
+            if (advancedStats)
             {
 
                 //Send back original data and modified data
@@ -214,7 +214,7 @@ namespace mlr
                     predictions[i] = 0;
                     for (int j = 0; j < coeffs.GetLength(0); j++)
                     {
-                        predictions[i] = predictions[i] + coeffs[j, 0] * xFull[i, j];
+                        predictions[i] += coeffs[j, 0] * xFull[i, j];
                     }
                     residuals[i] = y[i] - predictions[i];
 
