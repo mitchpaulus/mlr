@@ -19,6 +19,12 @@ namespace mlr
             string pythonClassName = "Model";
             int skip = 0;
 
+            int yColZeroBased = 0;
+
+            bool quadratic = false;
+
+            List<ColSelector> xSelectors = new() { new OpenEndColSelector(1) };
+
             string delimiter = null;
 
             OutputFormatter formatter = new TextOutputter();
@@ -74,6 +80,10 @@ namespace mlr
                         }
                     }
                 }
+                else if (a is "-q" or "--quad")
+                {
+                    quadratic = true;
+                }
                 else if (a is "--json") formatter = new JsonOutputter();
                 else if (a == "--python")
                 {
@@ -88,6 +98,31 @@ namespace mlr
                         return 1;
                     }
                     pythonClassName = args[i + 1];
+                    i++;
+                }
+                else if (a is "-y" or "--y-col")
+                {
+                    if (i + 1 >= args.Length)
+                    {
+                        Console.WriteLine("--class-name requires an argument");
+                        return 1;
+                    }
+                    var yColZeroBasedArg = args[i + 1];
+                    bool success = int.TryParse(yColZeroBasedArg, out int yColParsedInt);
+                    if (!success)
+                    {
+                        Console.Error.Write($"Could not parse argument for {a} as integer: '{yColZeroBasedArg}'\n");
+                        return 1;
+                    }
+
+                    if (yColParsedInt < 1)
+                    {
+                        Console.Error.Write( $"The specified y-column is expected to be greater than or equal to 1. Found {yColParsedInt}\n");
+                        return 1;
+                    }
+
+                    yColZeroBased = yColParsedInt - 1;
+
                     i++;
                 }
                 else
@@ -144,10 +179,10 @@ namespace mlr
                 if (dataFilePath.ToLower().EndsWith(".csv")) delimiter = ",";
                 else if (dataFilePath.ToLower().EndsWith(".tsv")) delimiter = "\t";
             }
-            
+
             // Check for presence of tab. If tab found, assume tab delimited.
             if (lines[0].Contains('\t')) delimiter = "\t";
-            
+
             if (delimiter is null) splitLines = lines.Skip(skip).Select(line => line.Split()).ToList();
             else                   splitLines = lines.Skip(skip).Select(line => line.Split(delimiter)).ToList();
 
@@ -353,6 +388,155 @@ namespace mlr
             }
 
             return data;
+        }
+    }
+
+    public interface ColSelector
+    {
+        public List<int> Cols(int count);
+    }
+
+    public class SingleColSelector : ColSelector
+    {
+        private readonly int _singleColZeroBased;
+
+        public SingleColSelector(int singleColZeroBased)
+        {
+            _singleColZeroBased = singleColZeroBased;
+        }
+
+        public List<int> Cols(int count) => new List<int>() { _singleColZeroBased };
+    }
+
+    public class FullRangeColSelector : ColSelector
+    {
+        private readonly int _startColZeroBased;
+        private readonly int _endColZeroBasedInclusive;
+
+        public FullRangeColSelector(int startColZeroBased, int endColZeroBasedInclusive)
+        {
+            _startColZeroBased = startColZeroBased;
+            _endColZeroBasedInclusive = endColZeroBasedInclusive;
+        }
+
+        public List<int> Cols(int count)
+        {
+            List<int> cols = new();
+            int col = _startColZeroBased;
+            while (col <= _endColZeroBasedInclusive)
+            {
+                cols.Add(col);
+                col++;
+            }
+
+            return cols;
+        }
+    }
+
+    public class OpenBeginningColSelector : ColSelector
+    {
+        private readonly int _endColZeroBasedInclusive;
+
+        public OpenBeginningColSelector(int endColZeroBasedInclusive)
+        {
+            _endColZeroBasedInclusive = endColZeroBasedInclusive;
+        }
+
+        public List<int> Cols(int count)
+        {
+            List<int> cols = new();
+            int col = 0;
+            while (col <= _endColZeroBasedInclusive)
+            {
+                cols.Add(col);
+                col++;
+            }
+
+            return cols;
+        }
+    }
+
+    public class OpenEndColSelector : ColSelector
+    {
+        private readonly int _startColZeroBased;
+
+        public OpenEndColSelector(int startColZeroBased)
+        {
+            _startColZeroBased = startColZeroBased;
+        }
+
+        public List<int> Cols(int count)
+        {
+            List<int> cols = new();
+            int col = _startColZeroBased;
+            while (col < count)
+            {
+                cols.Add(col);
+                col++;
+            }
+
+            return cols;
+        }
+    }
+
+    public class ColSelectorFactory
+    {
+
+        public bool TryGetColSelector(string input, out ColSelector selector)
+        {
+            // Can be in the form of:
+            // 1. '1' - single column
+            // 2. '1-3' - range of columns
+            // 3. '1-' - open ended range of columns
+            // 4. '-3' - open beginning range of columns
+            // 5. Else fail
+
+            if (int.TryParse(input, out int singleColZeroBased))
+            {
+                selector = new SingleColSelector(singleColZeroBased);
+                return true;
+            }
+
+            if (input.Contains('-'))
+            {
+                string[] parts = input.Split('-');
+                if (parts.Length != 2)
+                {
+                    selector = null;
+                    return false;
+                }
+
+                if (parts[0].Trim().Length == 0)
+                {
+                    if (int.TryParse(parts[1], out int endColZeroBasedInclusive))
+                    {
+                        selector = new OpenBeginningColSelector(endColZeroBasedInclusive);
+                        return true;
+                    }
+                }
+                else if (parts[1].Trim().Length == 0)
+                {
+                    if (int.TryParse(parts[0], out int startColZeroBased))
+                    {
+                        selector = new OpenEndColSelector(startColZeroBased);
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (int.TryParse(parts[0], out int startColZeroBased) && int.TryParse(parts[1], out int endColZeroBasedInclusive))
+                    {
+                        selector = new FullRangeColSelector(startColZeroBased, endColZeroBasedInclusive);
+                        return true;
+                    }
+                }
+
+                selector = new SingleColSelector(0);
+                return false;
+            }
+
+            selector = new SingleColSelector(0);
+            return false;
         }
     }
 }
