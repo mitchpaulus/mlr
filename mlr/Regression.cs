@@ -323,9 +323,9 @@ namespace mlr
         /// <summary>
         /// Coefficients
         /// </summary>
-        public double[] Coeffs { get; set; }
+        public double[]? Coeffs { get; set; }
         /// <summary>
-        /// R^2 value betwewen 0-1
+        /// R^2 value between 0-1
         /// </summary>
         public double Rsquared { get; set; }
         /// <summary>
@@ -339,11 +339,11 @@ namespace mlr
         /// <summary>
         /// Array of the t-statistics corresponding to the coefficients.
         /// </summary>
-        public double[] Tstats { get; set; }
+        public double[]? Tstats { get; set; }
         /// <summary>
         /// Standard errors corresponding to the coefficients.
         /// </summary>
-        public double[] CoeffsStandardErrors { get; set; }
+        public double[]? CoeffsStandardErrors { get; set; }
 
         //Advanced Statistics
         //------------------------------------------------------------------------------------------
@@ -359,15 +359,15 @@ namespace mlr
         /// <summary>
         /// Predicted Y values
         /// </summary>
-        public double[] Yhat { get; set; }
+        public double[]? Yhat { get; set; }
         /// <summary>
         /// Array of residuals from the regression
         /// </summary>
-        public double[] Residuals { get; set; }
+        public double[]? Residuals { get; set; }
         /// <summary>
         /// Array of standardized residuals, or studentized residuals.
         /// </summary>
-        public double[] StandResiduals { get; set; }
+        public double[]? StandResiduals { get; set; }
         /// <summary>
         /// F statistic for the model. F = (SSyy - SSE)/p / (SSE/(n-p))
         /// </summary>
@@ -375,17 +375,17 @@ namespace mlr
         /// <summary>
         /// n-length array of Cooks distance
         /// </summary>
-        public double[] CooksDistance { get; set; }
+        public double[]? CooksDistance { get; set; }
         /// <summary>
         /// Y data used in the regression
         /// </summary>
         [JsonIgnore]
-        public double[] Ydata { get; set; }
+        public double[]? Ydata { get; set; }
         /// <summary>
         /// Two dimensional array of x data used in the regression.
         /// </summary>
         [JsonIgnore]
-        public double[,] Xdata { get; set; }
+        public double[,]? Xdata { get; set; }
 
         public int n { get; set; }
 
@@ -394,7 +394,7 @@ namespace mlr
 
         public double SSR { get; set; }
 
-        public double YAvg => Ydata.Average();
+        public double YAvg => (Ydata ?? new double[]{}).Any() ? Ydata!.Average() : -999;
 
         public string ToJson()
         {
@@ -402,7 +402,6 @@ namespace mlr
             options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             // Serialize the object to JSON, ignoring, `Ydata` and `Xdata`.
             return JsonSerializer.Serialize(this, options);
-
         }
 
         public RegressionOutputs CloneBasicStatistics()

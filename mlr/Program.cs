@@ -10,11 +10,11 @@ namespace mlr
     {
         static int Main(string[] args)
         {
-            string dataFilePath = null;
+            string? dataFilePath = null;
 
             bool addConstant = true;
             bool printResults = false;
-            string printResultsFile = null;
+            string? printResultsFile = null;
             bool printStats = false;
             string pythonClassName = "Model";
             int skip = 0;
@@ -25,7 +25,7 @@ namespace mlr
 
             List<ColSelector> xSelectors = new() { new OpenEndColSelector(1) };
 
-            string delimiter = null;
+            string? delimiter = null;
 
             OutputFormatter formatter = new TextOutputter();
 
@@ -221,7 +221,7 @@ namespace mlr
             }
             else
             {
-                foreach (double coefficient in outputs.Coeffs)
+                foreach (double coefficient in outputs.Coeffs ?? new double[]{})
                 {
                     int numberOfSignificantFigures = Math.Min(10, Math.Max(0, 5 - (int)Math.Floor(Math.Log10(Math.Abs(coefficient)))));
                     Console.Out.Write($"{coefficient.ToString($"f{numberOfSignificantFigures}").TrimZeros()}\n");
@@ -299,10 +299,10 @@ namespace mlr
             StringBuilder builder = new();
 
             builder.Append($"CV (%): {outputs.CV * 100}\n");
-            builder.Append($"n: {outputs.Ydata.Length:D}\n");
+            builder.Append($"n: {(outputs.Ydata?.Length ?? 0):D}\n");
             builder.Append($"R2: {outputs.Rsquared}\n");
             builder.Append($"R2 adj: {outputs.AdjRsquared}\n");
-            builder.Append($"t-stats: {string.Join(", ", outputs.Tstats.ToList())}\n");
+            builder.Append($"t-stats: {string.Join(", ", outputs.Tstats?.ToList() ?? new List<double>())}\n");
             builder.Append($"SSR Σ(y_pred - y_ave)²: {outputs.SSR}\n");
             builder.Append($"SSE Σ(y_meas - y_pred)²: {outputs.SSE}\n");
             builder.Append($"SST Σ(y_meas - y_ave)²: {outputs.SST}\n");
@@ -340,7 +340,7 @@ namespace mlr
 
             builder.Append($"class {className}:\n");
             builder.Append("  coeffs = [\n");
-            foreach (double coefficient in outputs.Coeffs)
+            foreach (double coefficient in outputs.Coeffs ?? new double[]{})
             {
                 builder.Append($"    {coefficient},\n");
             }
@@ -349,7 +349,7 @@ namespace mlr
             builder.Append($"  n = {outputs.n}\n");
             builder.Append($"  r2 = {outputs.Rsquared}\n");
             builder.Append($"  r2_adj = {outputs.AdjRsquared}\n");
-            builder.Append($"  t_stats = [{string.Join(", ", outputs.Tstats.ToList())}]\n");
+            builder.Append($"  t_stats = [{string.Join(", ", outputs.Tstats?.ToList() ?? new List<double>())}]\n");
             builder.Append($"  ssr = {outputs.SSR}\n");
             builder.Append($"  sse = {outputs.SSE}\n");
             builder.Append($"  sst = {outputs.SST}\n");
@@ -502,7 +502,7 @@ namespace mlr
                 string[] parts = input.Split('-');
                 if (parts.Length != 2)
                 {
-                    selector = null;
+                    selector = new SingleColSelector(1);
                     return false;
                 }
 
