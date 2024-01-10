@@ -259,7 +259,7 @@ namespace mlr
             Console.Write("Input can be read from standard input, using '-' as the data file.\n");
         }
 
-        private static string Version => "0.1.0";
+        private static string Version => "0.2.0";
 
         public static bool IsValidLine(string[] strings, int numColumns) => strings.Any() && strings.Length == numColumns && strings.All(s => double.TryParse(s, out double _));
     }
