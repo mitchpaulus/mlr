@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -245,12 +245,14 @@ namespace mlr
             Console.Write("  mlr [options]... datafile\n");
             Console.Write("\n");
             Console.Write("OPTIONS:\n");
+            Console.Write(" -d, --delim DELIM Set file delimiter\n");
             Console.Write("     --class-name <name> Name of the Python class to generate.\n");
             Console.Write(" -h, --help      Show help and exit\n");
             Console.Write("     --json      Format output as JSON\n");
             Console.Write(" -n, --no-const  Don't add constant for regression coefficients\n");
             Console.Write("     --python    Format output as Python\n");
             Console.Write(" -s, --stats     Print regression statistics\n");
+            Console.Write("     --skip NUM  Skip first NUM number of lines\n");
             Console.Write("     --version   Display version and exit\n");
             Console.Write("\n");
             Console.Write("The 'dataFile' is expected to be a whitespace delimited data file,\n");
