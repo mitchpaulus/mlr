@@ -6,7 +6,7 @@ namespace mlr
 
     /// <summary>
     /// This class holds the matrix methods that are used in the multiple linear regression code.
-    /// Has methods for matrix transpose, matrix multiplication, Cholesky decomposition, 
+    /// Has methods for matrix transpose, matrix multiplication, Cholesky decomposition,
     /// Matrix inversion, and substitution (required for taking the inverse).
     /// </summary>
     public static class MatrixMethods
@@ -59,7 +59,7 @@ namespace mlr
         }
 
         /// <summary>
-        /// MatMultiply returns the result of a matrix multiplication operation.  The number of columns in y 
+        /// MatMultiply returns the result of a matrix multiplication operation.  The number of columns in y
         /// must equal the number of rows in x.
         /// </summary>
         /// <param name="y">double array for the left matrix</param>
@@ -89,7 +89,7 @@ namespace mlr
             return result;
         }
         /// <summary>
-        /// This method performs the Cholesky decomposition of a symmetric matrix.  The matrix 
+        /// This method performs the Cholesky decomposition of a symmetric matrix.  The matrix
         /// also shoudl be positive definite.
         /// </summary>
         /// <param name="x">double square symetric matrix</param>
